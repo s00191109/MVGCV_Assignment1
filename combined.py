@@ -1,5 +1,4 @@
-import argparse
-import sys
+import time
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
@@ -16,10 +15,11 @@ from scipy.ndimage.filters import gaussian_filter as gauss_filter
 
 # The unc path to the image file been processed
 FilePath = 'C:\\Users\\emcmane\\Pictures\\cubes4.png'
+#FilePath = 'C:\\Users\\emcmane\\Pictures\\hill2Zoom.jpg'
 
 #The Harris corner based algorithm to utilize
 #Specify one of "harmonic", "harris", "shi-tomasi", "triggs"
-ALGORITHM = 'harris'
+ALGORITHM = 'harmonic'
 
 # kernel window size
 DELTA_X = 3
@@ -69,7 +69,8 @@ def get_derivatives(image):
 
 def calc_tensor(Ixx, Ixy, Iyy, x, y):
     """
-    Calculates and returns the structure tensor M.
+    Calculates and returns the Auto Correlation tensor M.
+    This forms the basis for all four methods
     """
     # sum over window
     Sxx = sum(gauss_filter(Ixx[x - DELTA_X: x + DELTA_X + 1, y - DELTA_Y: y + DELTA_Y + 1], 2).ravel())
@@ -83,8 +84,8 @@ def calc_tensor(Ixx, Ixy, Iyy, x, y):
 def generic_corner_detection(grey_scale_image, algorithm):
     """
     Performs corner detection using specified algorithm on the provided image.
-    Returns a list of corners with inverted coordinates i.e. (x, y) corresponds
-    to row x and column y in the image.
+    Returns a list of corners with (x, y) coordinates which correspond
+    to row x and column y in the original image.
     """
     print("Started corner detection...")
     size_x = grey_scale_image.shape[0]
@@ -115,7 +116,7 @@ def generic_corner_detection(grey_scale_image, algorithm):
                 r = lambs[0] - K*lambs[1]
             # store values for R at each pixel to an array
             r_values[x, y] = r
-    print("Thresholding and nonmax supression...")
+    print("Apply Thresholding and nonmax supression...")
     max_r = max(r_values.ravel())
     list_of_corners = []
     # thresholding and nonmax supression
@@ -166,7 +167,13 @@ def main():
         image1 = np.asarray(Image.open(FilePath))
         print("Read image 1: {0}x{1} pixels.".format(*image1.shape))
 
+        tstart = time.time()
+        print(tstart)
         detect_interest_points(image1)
+        tfinish = time.time()
+        print(tfinish)
+        tduration = tfinish - tstart
+        print(tduration)
 
 if __name__ == "__main__":
     main()
