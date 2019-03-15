@@ -14,8 +14,14 @@ from scipy.ndimage.filters import gaussian_filter as gauss_filter
 """
 
 # The unc path to the image file been processed
-FilePath = 'C:\\Users\\emcmane\\Pictures\\cubes4.png'
-#FilePath = 'C:\\Users\\emcmane\\Pictures\\hill2Zoom.jpg'
+#FilePath = 'C:\\Users\\emcmane\\Pictures\\cubes1.png'
+#FilePath = 'C:\\Users\\emcmane\\Pictures\\cubes1Scale.png'
+#FilePath = 'C:\\Users\\emcmane\\Pictures\\cubes1Skew.png'
+FilePath = 'C:\\Users\\emcmane\\Pictures\\cubes1Rotate.png'
+#FilePath = 'C:\\Users\\emcmane\\Pictures\\cubes1View.png'
+#FilePath = 'C:\\Users\\emcmane\\Pictures\\colors.png'
+#FilePath = 'C:\\Users\\emcmane\\Pictures\\featureoutput\\Final\\original_rotated_29.png'
+#FilePath = 'C:\\Users\\emcmane\\Pictures\\hill1Zoom.png'
 
 #The Harris corner based algorithm to utilize
 #Specify one of "harmonic", "harris", "shi-tomasi", "triggs"
@@ -28,8 +34,12 @@ DELTA_Y = 3
 # trace scaling factor
 K = 0.06
 
+TRIGGS_ALPHA = 0.05
+
 # offset added to the trace of the M matrix when using the harmonic mean to prevent numerical instability
+#0.00001
 HARMONIC_OFFSET = 10e-6
+
 # Threshold multiplier for R value
 CORNER_THRESHOLD_MULTIPLIER = 0.2
 
@@ -69,7 +79,7 @@ def get_derivatives(image):
 
 def calc_tensor(Ixx, Ixy, Iyy, x, y):
     """
-    Calculates and returns the Auto Correlation tensor M.
+    Calculates and returns the tensor matrix M.
     This forms the basis for all four methods
     """
     # sum over window
@@ -113,7 +123,13 @@ def generic_corner_detection(grey_scale_image, algorithm):
                     r = lambs[1]
             elif algorithm == "triggs":
                 lambs, _ = np.linalg.eig(M)
-                r = lambs[0] - K*lambs[1]
+                if lambs[0] < lambs[1]:
+                    print("Lambda1 is smaller ")
+                    r = lambs[0] - (TRIGGS_ALPHA * lambs[1])
+                elif lambs[0] > lambs[1]:
+                    print("Lambda2 is smaller ")
+                    r = lambs[1] - (TRIGGS_ALPHA * lambs[0])
+
             # store values for R at each pixel to an array
             r_values[x, y] = r
     print("Apply Thresholding and nonmax supression...")
